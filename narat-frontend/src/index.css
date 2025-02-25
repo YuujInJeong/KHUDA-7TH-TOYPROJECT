@@ -1,17 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
-    font-weight: 400;
+  --primary-light: #3B82F6; /* 밝은 블루 */
+  --primary-main: #2563EB; /* 선명한 블루 */
+  --primary-dark: #1E40AF; /* 진한 블루 */
+
+  --secondary-light: #FB923C; /* 밝은 오렌지 */
+  --secondary-main: #F97316; /* 비비드 오렌지 */
+  --secondary-dark: #EA580C; /* 다크 오렌지 */
+
+  --background-light: #FFF7ED; /* 따뜻한 베이지 */
+  --background-main: #FDE68A; /* 부드러운 옐로우 */
+  --background-dark: #F59E0B; /* 주황빛 강조 */
+
+  --text-primary: #1E293B; /* 딥 네이비 */
+  --text-secondary: #475569; /* 블루그레이 */
+  --text-disabled: #94A3B8; /* 흐린 블루그레이 */
+
+  --error-main: #DC2626; /* 강렬한 레드 */
+  --success-main: #16A34A; /* 선명한 그린 */
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--background-light);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+#root {
+  width: 100%;
+  margin: 0 auto;
+}
+
+@layer components {
+  .container {
+    @apply px-6 sm:px-8 md:px-12 mx-auto max-w-screen-xl;
   }
-  
-  body {
-    margin: 0;
-    min-width: 320px;
-    min-height: 100vh;
+
+  .btn-primary {
+    @apply bg-[var(--primary-main)] text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-[var(--primary-dark)] transition duration-300;
   }
-  
-  #root {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 2rem;
+
+  .btn-secondary {
+    @apply bg-[var(--secondary-main)] text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-[var(--secondary-dark)] transition duration-300;
   }
+
+  .card {
+    @apply bg-white shadow-xl rounded-2xl p-6 hover:shadow-2xl transition-all duration-300;
+  }
+}

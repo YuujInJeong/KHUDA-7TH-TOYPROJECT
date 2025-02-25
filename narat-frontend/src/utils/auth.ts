@@ -1,25 +1,33 @@
-// src/utils/auth.ts
-export const AUTH_TOKEN_KEY = 'session_token';
+import api from './api';
 
-export const authUtils = {
-  setToken: (token: string) => {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-  },
+// 인터페이스 정의
+interface VerifySessionParams {
+  session_token: string;
+}
 
-  getToken: () => {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
-  },
+interface SessionResponse {
+  is_valid: boolean;
+  display_name: string;
+  study_level: number;
+}
 
-  removeToken: () => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-  },
+// 세션 토큰 검증
+export const verifySession = async (sessionToken: string): Promise<SessionResponse> => {
+  const params: VerifySessionParams = { session_token: sessionToken };
+  return await api.post('/api/auth/verify', params);
+};
 
-  isAuthenticated: () => {
-    return !!localStorage.getItem(AUTH_TOKEN_KEY);
-  },
+// 로그아웃 시 세션 제거
+export const removeSession = (): void => {
+  localStorage.removeItem('session_token');
+};
 
-  handleLogout: () => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    window.location.href = '/auth/login';
-  }
+// 세션 토큰 가져오기
+export const getSessionToken = (): string | null => {
+  return localStorage.getItem('session_token');
+};
+
+// 세션 토큰 저장
+export const saveSessionToken = (token: string): void => {
+  localStorage.setItem('session_token', token);
 };

@@ -1,49 +1,28 @@
-//src/utils/api.ts
-import axios, { AxiosError } from 'axios';
-import { AuthCredentials } from '@/types/auth';
+import axios from 'axios';
 
-const API_URL = process.env.VITE_API_URL || 'http://localhost:3000';
+// API 기본 URL 설정
+// ImportMeta 타입 오류 해결을 위한 환경변수 접근 방식 변경
+const BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-export const apiClient = axios.create({
-  baseURL: API_URL,
+// Axios 인스턴스 생성
+const api = axios.create({
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// 에러 타입 정의
-interface ApiError {
-  message: string;
-  code: string;
-}
-
-// Request interceptor
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('sessionToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+// 응답 데이터만 반환하도록 인터셉터 설정
+api.interceptors.response.use(
+  (response) => {
+    // 응답 데이터만 반환
+    return response.data;
   },
-  (error: AxiosError) => {
+  (error) => {
+    // 에러 로깅 및 전파
+    console.error('API Error:', error);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor with better error handling
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError<ApiError>) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('sessionToken');
-      window.location.href = '/';
-    }
-    
-    const errorMessage = error.response?.data?.message || '알 수 없는 오류가 발생했습니다.';
-    console.error('API Error:', errorMessage);
-    return Promise.reject(new Error(errorMessage));
-  }
-);
-
-export default apiClient;
+export default api;

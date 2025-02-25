@@ -1,124 +1,82 @@
-//src/components/auth/GoogleLogin.tsx 수정
-import React from 'react';
-import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import { theme } from '@/styles/theme';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '@/context/AuthContext';
+import { loginWithGoogle } from '@/api/auth';
+import Button from '@/components/common/Button';
 
-interface GoogleLoginProps {
-  onLogin: () => void;
-  isLoading?: boolean;
-}
+// 테스트용 토큰 (실제 구현에서는 Google OAuth 인증을 사용해야 함)
+const TEST_TOKEN = 'test-google-token';
 
-const Container = styled.div`
-  max-width: 480px;
-  margin: 0 auto;
-  padding: ${theme.spacing.xl};
-  text-align: center;
-`;
-
-const Title = styled.h1`
-  font-size: ${theme.typography.fontSize['4xl']};
-  font-weight: ${theme.typography.fontWeight.bold};
-  margin-bottom: ${theme.spacing.md};
-  color: ${theme.colors.mono.black};
-`;
-
-const Subtitle = styled.p`
-  font-size: ${theme.typography.fontSize.lg};
-  color: ${theme.colors.mono.gray};
-  margin-bottom: ${theme.spacing['2xl']};
-  line-height: 1.6;
-`;
-
-const LoginButton = styled.button`
-  width: 100%;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${theme.spacing.md};
-  background-color: ${theme.colors.mono.white};
-  border: 2px solid ${theme.colors.mono.lightGray};
-  border-radius: ${theme.borderRadius.lg};
-  font-size: ${theme.typography.fontSize.lg};
-  font-weight: ${theme.typography.fontWeight.medium};
-  color: ${theme.colors.mono.darkGray};
-  transition: all ${theme.transitions.fast};
-  padding: 0 ${theme.spacing.xl};
-
-  &:hover:not(:disabled) {
-    border-color: ${theme.colors.mono.darkGray};
-    background-color: ${theme.colors.background.secondary};
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const GoogleIcon = styled.div`
-  width: 24px;
-  height: 24px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23FFC107' d='M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z'/%3E%3Cpath fill='%23FF3D00' d='m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z'/%3E%3Cpath fill='%234CAF50' d='M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z'/%3E%3Cpath fill='%231976D2' d='M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
-`;
-
-const Spinner = styled.div`
-  width: 24px;
-  height: 24px;
-  border: 3px solid ${theme.colors.mono.lightGray};
-  border-top-color: ${theme.colors.primary.main};
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
-const Description = styled.p`
-  margin-top: ${theme.spacing.xl};
-  font-size: ${theme.typography.fontSize.sm};
-  color: ${theme.colors.mono.gray};
-  line-height: 1.6;
-`;
-const StyledLink = styled(Link)`
-  color: ${theme.colors.primary.deep};
-  text-decoration: none;
+const GoogleLogin: React.FC = () => {
+  const { setUser } = useContext(AuthContext);
+  const navigate = useNavigate();
   
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-export const GoogleLogin: React.FC<GoogleLoginProps> = ({ onLogin, isLoading }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+      
+      // 실제 구현에서는 Google OAuth 인증 과정을 통해 access_token을 획득해야 함
+      // 여기서는 테스트용 토큰 사용
+      const response = await loginWithGoogle({ access_token: TEST_TOKEN });
+      
+      if (response.session_token) {
+        // 세션 토큰 저장
+        localStorage.setItem('session_token', response.session_token);
+        
+        // 사용자 정보 업데이트
+        setUser({
+          displayName: response.display_name,
+          studyLevel: response.study_level,
+          isAuthenticated: true
+        });
+        
+        // 학습 페이지로 이동
+        navigate('/study');
+      } else {
+        alert('로그인에 실패했습니다. 다시 시도해주세요.');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return (
-    <Container>
-      <Title>나랏말싸미</Title>
-      <Subtitle>
-        우리말 맞춤법 학습을 위한<br />
-        가장 쉽고 재미있는 방법
-      </Subtitle>
-
-      <LoginButton 
-        onClick={onLogin} 
-        disabled={isLoading}
-        aria-busy={isLoading}
-      >
-        {isLoading ? <Spinner aria-hidden="true" /> : <GoogleIcon aria-hidden="true" />}
-        Google 계정으로 시작하기
-      </LoginButton>
-
-      <Description>
-        로그인하면 나랏말싸미의{' '}
-        <StyledLink to="/terms">이용약관</StyledLink>과{' '}
-        <StyledLink to="/privacy">개인정보 처리방침</StyledLink>에 
-        동의하게 됩니다.
-      </Description>
-    </Container>
+    <Button
+      variant="outline"
+      fullWidth
+      onClick={handleGoogleLogin}
+      isLoading={isLoading}
+      className="flex items-center justify-center border border-gray-300 py-3"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" className="mr-2">
+        <g transform="translate(0.000000,20.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
+          <path d="M92 178 c-19 -19 -14 -55 9 -68 37 -19 75 29 52 67 -14 22 -43 23
+          -61 1z"/>
+          <path d="M37 126 c-9 -22 2 -55 30 -84 l25 -27 -27 -3 c-22 -2 -26 -8 -23 -28
+          3 -21 9 -24 48 -24 36 0 50 5 70 26 14 14 28 35 31 46 4 15 0 18 -19 18 -18 0
+          -21 -3 -12 -12 9 -9 5 -12 -16 -12 -23 0 -25 2 -14 11 10 8 17 9 22 3 4 -7 15
+          -8 28 -4 24 9 25 21 5 52 -11 18 -11 24 0 40 12 15 12 20 0 33 -8 8 -15 11
+          -15 6 0 -5 -18 -9 -40 -9 -22 0 -40 4 -40 9 0 5 -6 3 -14 -4 -11 -9 -15 -9
+          -19 0 -9 23 -31 11 -40 -21 -5 -17 -4 -26 3 -26 6 0 10 4 10 9 0 17 27 22 33
+          6 4 -11 1 -15 -10 -15 -9 0 -13 -4 -10 -10 3 -5 1 -10 -6 -10 -10 0 -9 -5 2
+          -21 18 -24 9 -22 -23 7 -16 14 -22 30 -19 47 3 19 0 27 -10 27 -8 0 -17 -7
+          -20 -16z m83 -36 c0 -5 -2 -10 -4 -10 -3 0 -8 5 -11 10 -3 6 -1 10 4 10 6 0
+          11 -4 11 -10z m48 -17 c2 -6 -7 -13 -19 -15 -15 -2 -24 2 -24 11 0 18 37 21
+          43 4z"/>
+          <path d="M114 106 c-3 -8 -4 -25 -2 -38 3 -20 8 -23 43 -23 25 0 43 6 47 14 4
+          9 5 6 3 -6 -3 -15 -15 -24 -40 -30 -32 -8 -35 -11 -28 -34 l7 -24 33 3 c29 3
+          35 8 40 33 4 17 7 44 7 60 0 17 5 29 11 29 8 0 8 4 0 14 -13 16 -113 18 -121
+          2z"/>
+        </g>
+      </svg>
+      Google로 로그인
+    </Button>
   );
 };
+
+export default GoogleLogin;
