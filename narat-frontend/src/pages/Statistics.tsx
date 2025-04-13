@@ -1,6 +1,11 @@
-import React from 'react';
+// src/pages/Statistics.tsx
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { studyService } from '../api/services';
+import { getSessionToken } from '../api/axios';
+import { RecentWrongAnswer } from '../types/auth';
+import Loading from './Loading';
 
 const StyledContainer = styled.div`
   width: 100%;
@@ -170,6 +175,7 @@ const StyledWrongAnswer = styled.p`
   margin: 5px 0;
   font-size: 13px;
   font-family: 'Gmarket Sans TTF';
+  line-height: 1.4;
 `;
 
 const StyledCorrectText = styled.span`
@@ -233,17 +239,54 @@ const StyledRetryButton = styled.div`
   cursor: pointer;
 `;
 
+// 로케이션 스테이트 타입 정의
 interface LocationState {
   totalQuestions: number;
   correctAnswers: number;
+  averageTime?: number;
+  totalTime?: number;
 }
 
 const Statistics: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { totalQuestions, correctAnswers } = location.state as LocationState || { totalQuestions: 0, correctAnswers: 0 };
+  const stateData = location.state as LocationState;
 
-  const score = Math.round((correctAnswers / totalQuestions) * 100) || 0;
+  const [wrongAnswers, setWrongAnswers] = useState<RecentWrongAnswer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [score, setScore] = useState(0);
+
+  // 세션 토큰으로 최근 틀린 문제 가져오기
+  useEffect(() => {
+    const fetchWrongAnswers = async () => {
+      try {
+        setLoading(true);
+        const sessionToken = getSessionToken();
+        
+        if (sessionToken) {
+          const wrongData = await studyService.getRecentWrong({
+            session_token: sessionToken,
+            limit: 5
+          });
+          
+          setWrongAnswers(wrongData.recent_wrong_answers || []);
+        }
+        
+        // 퀴즈 결과에서 점수 계산
+        if (stateData) {
+          const calculatedScore = Math.round((stateData.correctAnswers / stateData.totalQuestions) * 100);
+          setScore(calculatedScore);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch wrong answers:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchWrongAnswers();
+  }, [stateData]);
 
   const handleBackClick = () => {
     navigate('/dashboard');
@@ -254,9 +297,13 @@ const Statistics: React.FC = () => {
   };
 
   const handleSaveAsImage = () => {
-    // 이미지 저장 로직 구현
+    // 이미지 저장 로직
     alert('이미지 저장 기능은 곧 구현될 예정입니다.');
   };
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <StyledContainer>
@@ -279,12 +326,22 @@ const Statistics: React.FC = () => {
         </StyledProgressBarContainer>
         <StyledWrongAnswerBox>
           <StyledWrongAnswerTitle>오답 문장 모아보기</StyledWrongAnswerTitle>
-          <StyledWrongAnswer>
-            <StyledNormalText>일을 </StyledNormalText>
-            <StyledWrongText>하던지 말던지 </StyledWrongText>
-            <StyledNormalText>마음을 정해야지. </StyledNormalText>
-            <StyledCorrectText>하든지 말든지</StyledCorrectText>
-          </StyledWrongAnswer>
+          {wrongAnswers.length > 0 ? (
+            wrongAnswers.map((wrongAnswer, index) => (
+              <StyledWrongAnswer key={index}>
+                <StyledNormalText>
+                  {wrongAnswer.wrong_sentence.split(wrongAnswer.wrong_word)[0]}
+                </StyledNormalText>
+                <StyledWrongText>{wrongAnswer.wrong_word} </StyledWrongText>
+                <StyledNormalText>
+                  {wrongAnswer.wrong_sentence.split(wrongAnswer.wrong_word)[1]} 
+                </StyledNormalText>
+                <StyledCorrectText>→ {wrongAnswer.right_word}</StyledCorrectText>
+              </StyledWrongAnswer>
+            ))
+          ) : (
+            <StyledNormalText>틀린 문제가 없습니다.</StyledNormalText>
+          )}
         </StyledWrongAnswerBox>
         <StyledButtonContainer>
           <StyledSaveButton onClick={handleSaveAsImage}>이미지로 저장하기</StyledSaveButton>
@@ -295,4 +352,4 @@ const Statistics: React.FC = () => {
   );
 };
 
-export default Statistics; 
+export default Statistics;

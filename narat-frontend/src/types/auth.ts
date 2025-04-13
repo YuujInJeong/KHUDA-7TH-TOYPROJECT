@@ -1,59 +1,111 @@
+// src/types/auth.ts
 export interface User {
-  id: string;
-  username: string;
+  google_id: string;
   email: string;
-  createdAt: string;
-  updatedAt: string;
+  display_name: string;
+  study_level: 'S' | 'A' | 'B';
+  created_at: string;
+  last_login: string;
 }
 
 export interface Question {
-  id: string;
-  title: string;
-  content: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  question_id: string;
+  category_id: string;
+  wrong_sentence: string;
+  right_sentence: string;
+  wrong_word: string;
+  right_word: string;
+  location: string;
+  difficulty_level: number;
+  explanation: string;
+  is_active: boolean;
+  total_attempts: number;
+  correct_rate: number;
+  avg_time_spent: number;
+  dropout_rate: number;
+  daily_stats: any;
+  stats_updated_at: string;
+  created_at: string;
 }
 
 export interface Category {
-  id: string;
+  category_id: string;
   name: string;
   description: string;
-}
-
-export interface Recommendation {
-  id: string;
-  userId: string;
-  type: number;
-  status: boolean;
-  createdAt: string;
-  questions: Question[];
+  created_at: string;
 }
 
 export interface UserLog {
-  id: string;
-  userId: string;
-  questionId: string;
+  log_id: string;
+  google_id: string;
+  question_id: string;
   correct: boolean;
-  delayTime: number;
-  createdAt: string;
+  delaytime: number;
+  created_at: string;
+}
+
+export interface Recommendation {
+  rec_id: string;
+  google_id: string;
+  rec_status: boolean;
+  rec_type: number;
+  created_at: string;
+  questions?: Question[];
+}
+
+export interface RecommendationQuestion {
+  index: string;
+  rec_id: string;
+  question_id: string;
+  order: number;
+}
+
+export interface Session {
+  session_id: string;
+  google_id: string;
+  created_at: string;
 }
 
 export interface StudyStats {
-  totalQuestions: number;
-  correctQuestions: number;
-  correctRate: number;
-  avgTimeSpent: number;
-  categoryStats: {
-    [key: string]: {
-      total: number;
-      correct: number;
-      correctRate: number;
-    };
-  };
-  difficultyStats: {
-    [key: number]: {
-      total: number;
-      correct: number;
-      correctRate: number;
-    };
-  };
+  category_stats: CategoryStat[];
+  difficulty_stats: DifficultyLevelStat[];
+  time_stats?: TimeStats;
+}
+
+export interface CategoryStat {
+  category: string;
+  total: number;
+  correct: number;
+  correct_rate: number;
+}
+
+export interface DifficultyLevelStat {
+  level: number;
+  total: number;
+  correct: number;
+  correct_rate: number;
+}
+
+export interface TimeStats {
+  average_time: number;
+  total_time: number;
+  total_questions: number;
+}
+
+export interface RecentWrongAnswer {
+  wrong_sentence: string;
+  right_sentence: string;
+  wrong_word: string;
+  right_word: string;
+  explanation: string;
+  created_at: string;
+}
+
+export interface StudyHistory {
+  question_id: string;
+  wrong_sentence: string;
+  right_sentence: string;
+  correct: boolean;
+  time_spent: number;
+  created_at: string;
 }

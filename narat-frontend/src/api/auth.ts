@@ -1,65 +1,63 @@
+// src/api/auth.ts
 import { User } from '../types/auth';
+import { api } from './axios';
 
-// TODO: 실제 API 구현 시 주석 해제
-/*
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://api.khuda-ml.store';
 
 export const googleLogin = async (): Promise<void> => {
   window.location.href = `${API_BASE_URL}/auth/google/login`;
 };
 
 export const logout = async (): Promise<void> => {
-  await fetch(`${API_BASE_URL}/auth/logout`, {
-    method: 'POST',
-    credentials: 'include',
-  });
+  try {
+    await api.post('/auth/logout');
+    // 로그아웃 시 로컬 스토리지 초기화
+    localStorage.removeItem('token');
+    localStorage.removeItem('session_token');
+  } catch (error) {
+    console.error('Logout failed:', error);
+    // 에러가 발생해도 로컬 스토리지는 정리
+    localStorage.removeItem('token');
+    localStorage.removeItem('session_token');
+  }
 };
 
 export const getCurrentUser = async (): Promise<User> => {
-  const response = await fetch(`${API_BASE_URL}/users/me`, {
-    credentials: 'include',
-  });
-  return response.json();
+  try {
+    const response = await api.get('/users/me');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get current user:', error);
+    throw error;
+  }
 };
 
 export const updateUserProfile = async (user: Partial<User>): Promise<User> => {
-  const response = await fetch(`${API_BASE_URL}/users/me`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify(user),
-  });
-  return response.json();
-};
-*/
-
-// 임시 데이터
-export const googleLogin = async (): Promise<void> => {
-  console.log('Google login clicked');
+  try {
+    const response = await api.put('/users/me', user);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update user profile:', error);
+    throw error;
+  }
 };
 
-export const logout = async (): Promise<void> => {
-  console.log('Logout clicked');
+export const getUserStudyLevel = async (): Promise<{ level: 'S' | 'A' | 'B' }> => {
+  try {
+    const response = await api.get('/users/me/study-level');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get user study level:', error);
+    throw error;
+  }
 };
 
-export const getCurrentUser = async (): Promise<User> => {
-  return {
-    id: 'temp-user-id',
-    username: '임시 사용자',
-    email: 'temp@example.com',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-};
-
-export const updateUserProfile = async (user: Partial<User>): Promise<User> => {
-  return {
-    id: 'temp-user-id',
-    username: user.username || '임시 사용자',
-    email: user.email || 'temp@example.com',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
+export const updateUserStudyLevel = async (level: 'S' | 'A' | 'B'): Promise<{ level: 'S' | 'A' | 'B' }> => {
+  try {
+    const response = await api.put('/users/me/study-level', { level });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update user study level:', error);
+    throw error;
+  }
 };

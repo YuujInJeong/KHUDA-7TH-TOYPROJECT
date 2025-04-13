@@ -1,7 +1,15 @@
-import React from 'react';
+// src/pages/Dashboard.tsx
+import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/common/Button';
+import { useAuth } from '../context/AuthContext';
+import { logService, studyService } from '../api/services';
+import { logout } from '../api/auth';
+import Loading from './Loading';
+import { CategoryStat, DifficultyLevelStat, RecentWrongAnswer, StudyStats, TimeStats } from '../types/auth';
+import { getSessionToken, setSessionToken } from '../api/axios';
+import { sessionService } from '../api/services';
 
 const fadeIn = keyframes`
   0% {
@@ -65,6 +73,7 @@ const Card2 = styled.div`
   display: flex;
   flex-direction: column;
   padding: 15px;
+  overflow: hidden;
 `;
 
 const Card3 = styled.div`
@@ -76,6 +85,7 @@ const Card3 = styled.div`
   background: rgba(255, 255, 255, 0.73);
   border-radius: 8px;
   border: 1px rgba(164.16, 164.16, 164.16, 0.35) solid;
+  padding: 10px;
 `;
 
 const Card4 = styled.div`
@@ -87,164 +97,24 @@ const Card4 = styled.div`
   background: rgba(255, 255, 255, 0.73);
   border-radius: 8px;
   border: 1px rgba(164.16, 164.16, 164.16, 0.35) solid;
+  padding: 10px;
 `;
 
 const ProgressBarBackground = styled.div`
   width: 129px;
   height: 20px;
-  position: absolute;
-  left: 43px;
-  top: 518px;
+  position: relative;
   background: #F3F3F3;
   border-radius: 20px;
+  margin-top: 8px;
 `;
 
 const ProgressBarFill = styled.div<{ width: string }>`
   width: ${props => props.width};
   height: 20px;
   position: absolute;
-  left: 43px;
-  top: 518px;
-  background: #FFCBCB;
-  border-radius: 20px;
-`;
-
-const ProgressBarBackground2 = styled.div`
-  width: 129px;
-  height: 20px;
-  position: absolute;
-  left: 43px;
-  top: 555px;
-  background: #F3F3F3;
-  border-radius: 20px;
-`;
-
-const ProgressBarFill2 = styled.div<{ width: string }>`
-  width: ${props => props.width};
-  height: 20px;
-  position: absolute;
-  left: 43px;
-  top: 555px;
-  background: #FFCBCB;
-  border-radius: 20px;
-`;
-
-const ProgressBarBackground3 = styled.div`
-  width: 129px;
-  height: 20px;
-  position: absolute;
-  left: 43px;
-  top: 592px;
-  background: #F3F3F3;
-  border-radius: 20px;
-`;
-
-const ProgressBarFill3 = styled.div<{ width: string }>`
-  width: ${props => props.width};
-  height: 20px;
-  position: absolute;
-  left: 43px;
-  top: 592px;
-  background: #FFCBCB;
-  border-radius: 20px;
-`;
-
-const ProgressBarBackground4 = styled.div`
-  width: 129px;
-  height: 17.19px;
-  position: absolute;
-  left: 218px;
-  top: 510px;
-  background: #F3F3F3;
-  border-radius: 20px;
-`;
-
-const ProgressBarFill4 = styled.div<{ width: string }>`
-  width: ${props => props.width};
-  height: 17.19px;
-  position: absolute;
-  left: 218px;
-  top: 510px;
-  background: #FFCBCB;
-  border-radius: 20px;
-`;
-
-const ProgressBarBackground5 = styled.div`
-  width: 129px;
-  height: 17.19px;
-  position: absolute;
-  left: 218px;
-  top: 533.20px;
-  background: #F3F3F3;
-  border-radius: 20px;
-`;
-
-const ProgressBarFill5 = styled.div<{ width: string }>`
-  width: ${props => props.width};
-  height: 17.19px;
-  position: absolute;
-  left: 218px;
-  top: 533.20px;
-  background: #FFCBCB;
-  border-radius: 20px;
-`;
-
-const ProgressBarBackground6 = styled.div`
-  width: 129px;
-  height: 17.19px;
-  position: absolute;
-  left: 218px;
-  top: 556.41px;
-  background: #F3F3F3;
-  border-radius: 20px;
-`;
-
-const ProgressBarFill6 = styled.div<{ width: string }>`
-  width: ${props => props.width};
-  height: 17.19px;
-  position: absolute;
-  left: 218px;
-  top: 556.41px;
-  background: #FFCBCB;
-  border-radius: 20px;
-`;
-
-const ProgressBarBackground7 = styled.div`
-  width: 129px;
-  height: 17.19px;
-  position: absolute;
-  left: 218px;
-  top: 579.61px;
-  background: #F3F3F3;
-  border-radius: 20px;
-`;
-
-const ProgressBarFill7 = styled.div<{ width: string }>`
-  width: ${props => props.width};
-  height: 17.19px;
-  position: absolute;
-  left: 218px;
-  top: 579.61px;
-  background: #FFCBCB;
-  border-radius: 20px;
-`;
-
-const ProgressBarBackground8 = styled.div`
-  width: 129px;
-  height: 17.19px;
-  position: absolute;
-  left: 218px;
-  top: 602.81px;
-  background: #F3F3F3;
-  border-radius: 20px;
-`;
-
-const ProgressBarFill8 = styled.div<{ width: string }>`
-  width: ${props => props.width};
-  height: 17.19px;
-  position: absolute;
-  left: 218px;
-  top: 602.81px;
+  left: 0;
+  top: 0;
   background: #FFCBCB;
   border-radius: 20px;
 `;
@@ -263,31 +133,8 @@ const Divider = styled.div`
 const Divider2 = styled.div`
   width: 129px;
   height: 0px;
-  position: absolute;
-  left: 43px;
-  top: 495px;
-  opacity: 0.80;
-  outline: 0.30px black solid;
-  outline-offset: -0.15px;
-`;
-
-const Divider3 = styled.div`
-  width: 129px;
-  height: 0px;
-  position: absolute;
-  left: 214px;
-  top: 495px;
-  opacity: 0.80;
-  outline: 0.30px black solid;
-  outline-offset: -0.15px;
-`;
-
-const Divider4 = styled.div`
-  width: 193px;
-  height: 0px;
-  position: absolute;
-  left: 43px;
-  top: 210px;
+  margin-top: 8px;
+  margin-bottom: 8px;
   opacity: 0.80;
   outline: 0.30px black solid;
   outline-offset: -0.15px;
@@ -323,20 +170,30 @@ const Text = styled.span`
   word-wrap: break-word;
 `;
 
-const GrayText = styled.span`
-  color: #565656;
-  font-size: 12px;
-  font-family: Gmarket Sans TTF;
-  font-weight: 500;
-  word-wrap: break-word;
-`;
-
-const Title = styled.span`
+const CardTitle = styled.span`
   color: black;
   font-size: 12px;
   font-family: Gmarket Sans TTF;
   font-weight: 500;
   word-wrap: break-word;
+  margin-bottom: 10px;
+  display: block;
+`;
+
+const WrongSentenceItem = styled.div`
+  font-size: 12px;
+  margin-bottom: 5px;
+  line-height: 1.3;
+`;
+
+const CorrectWord = styled.span`
+  color: #27ae60;
+  font-weight: bold;
+`;
+
+const WrongWord = styled.span`
+  color: #e74c3c;
+  text-decoration: line-through;
 `;
 
 const Avatar = styled.div`
@@ -388,6 +245,7 @@ const UserMessage = styled.span`
 const StatRow = styled.div`
   display: flex;
   align-items: center;
+  margin-bottom: 8px;
 `;
 
 const StatLabel = styled.span`
@@ -413,14 +271,7 @@ const StatUnit = styled.span`
   font-family: Gmarket Sans TTF;
   font-weight: 500;
   word-wrap: break-word;
-`;
-
-const TimeUnit = styled.span`
-  color:rgb(0, 0, 0);
-  font-size: 12px;
-  font-family: Gmarket Sans TTF;
-  font-weight: 500;
-  word-wrap: break-word;
+  margin-left: 2px;
 `;
 
 const LogoutText = styled.span`
@@ -432,23 +283,138 @@ const LogoutText = styled.span`
   position: absolute;
   right: 20px;
   bottom: 20px;
+  cursor: pointer;
 `;
 
-const CardTitle = styled.span`
+const CategoryLabel = styled.span`
   color: black;
-  font-size: 12px;
+  font-size: 10px;
   font-family: Gmarket Sans TTF;
   font-weight: 500;
   word-wrap: break-word;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
+  display: block;
 `;
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const USER_NICKNAME = "사용자"; // 실제로는 사용자 정보에서 가져와야 함
+  const { user, logout: authLogout } = useAuth();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [studyStats, setStudyStats] = useState<StudyStats | null>(null);
+  const [recentWrongs, setRecentWrongs] = useState<RecentWrongAnswer[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // 세션 초기화
+    const initSession = async () => {
+      try {
+        // 기존 세션 확인
+        let currentSessionId = getSessionToken();
+        
+        if (!currentSessionId) {
+          // 새 세션 생성
+          const sessionData = await sessionService.createSession();
+          currentSessionId = sessionData.session_id;
+          setSessionToken(currentSessionId);
+        }
+        
+        setSessionId(currentSessionId);
+        return currentSessionId;
+      } catch (error) {
+        console.error('Failed to initialize session:', error);
+        return null;
+      }
+    };
+
+    // 데이터 로드
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        const sid = await initSession();
+        
+        if (sid) {
+          // 학습 통계 가져오기
+          const stats = await studyService.getStudyStats({ session_token: sid });
+          setStudyStats(stats);
+          
+          // 최근 틀린 문제 가져오기
+          const wrongAnswers = await studyService.getRecentWrong({ 
+            session_token: sid, 
+            limit: 3 
+          });
+          setRecentWrongs(wrongAnswers.recent_wrong_answers || []);
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
 
   const handleQuizClick = () => {
     navigate('/quiz');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      authLogout();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
+  };
+
+  // 카테고리 ID에 따른 이름 매핑
+  const getCategoryName = (categoryId: string): string => {
+    const categories: Record<string, string> = {
+      '0': '문법적으로 틀린 단어/구절',
+      '1': '용례가 다른 단어/구절',
+      '2': '띄어쓰기 문제',
+    };
+    
+    return categories[categoryId] || '기타';
+  };
+
+  // 난이도 레벨에 따른 설명 매핑
+  const getDifficultyDescription = (level: number): string => {
+    const difficulties: Record<number, string> = {
+      1: '상식이다',
+      2: '아이 뭐 헷갈릴 수도 있지~',
+      3: '아 이게 맞던가..?',
+      4: '헷갈린다. 네이버 검색 ㄱㄱ',
+      5: '충격!!! 말도 안돼.'
+    };
+    
+    return difficulties[level] || `난이도 ${level}`;
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  // 정답률 계산
+  const getCorrectRate = (): number => {
+    if (!studyStats) return 0;
+    
+    let totalCorrect = 0;
+    let totalQuestions = 0;
+    
+    studyStats.difficulty_stats.forEach(stat => {
+      totalCorrect += stat.correct;
+      totalQuestions += stat.total;
+    });
+    
+    return totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+  };
+
+  // 평균 풀이 시간 계산 (초 단위)
+  const getAverageTime = (): number => {
+    if (!studyStats?.time_stats) return 0;
+    return Math.round(studyStats.time_stats.average_time);
   };
 
   return (
@@ -456,7 +422,7 @@ const Dashboard: React.FC = () => {
       <Logo src="/onboarding.png" alt="로고" />
       
       <UserGreeting>
-        <UserName>{USER_NICKNAME}</UserName>
+        <UserName>{user?.display_name || '사용자'}</UserName>
         <UserMessage>님의 <br/>학습을 응원합니다 :)</UserMessage>
       </UserGreeting>
       
@@ -465,58 +431,77 @@ const Dashboard: React.FC = () => {
         <CardContent>
           <StatRow>
             <StatLabel>오늘의 정답률</StatLabel>
-            <StatValue>90</StatValue>
+            <StatValue>{getCorrectRate()}</StatValue>
             <StatUnit>%</StatUnit>
           </StatRow>
           <StatRow>
             <StatLabel>평균 풀이 시간</StatLabel>
-            <StatValue>90</StatValue>
-            <TimeUnit>m</TimeUnit>
+            <StatValue>{getAverageTime()}</StatValue>
+            <StatUnit>초</StatUnit>
           </StatRow>
         </CardContent>
       </Card>
       <Card2>
         <CardTitle>최근에 틀린 문장</CardTitle>
+        {recentWrongs.length > 0 ? (
+          recentWrongs.map((wrong, index) => (
+            <WrongSentenceItem key={index}>
+              {wrong.wrong_sentence.replace(wrong.wrong_word, 
+                `${wrong.wrong_word} → ${wrong.right_word}`
+              )}
+            </WrongSentenceItem>
+          ))
+        ) : (
+          <Text>최근에 틀린 문장이 없습니다.</Text>
+        )}
       </Card2>
-      <Divider4 />
+      <Divider />
       
-      <Card3 />
-      <ProgressBarBackground />
-      <ProgressBarFill width="84px" />
-      <ProgressBarBackground2 />
-      <ProgressBarFill2 width="115.69px" />
-      <ProgressBarBackground3 />
-      <ProgressBarFill3 width="115.69px" />
-      <Text style={{ position: 'absolute', left: '43px', top: '480px' }}>카테고리별 학습현황</Text>
-      <Divider2 />
+      <Card3>
+        <CardTitle>카테고리별 학습현황</CardTitle>
+        <Divider2 />
+        {studyStats?.category_stats ? (
+          studyStats.category_stats.map((stat, index) => (
+            <div key={index}>
+              <CategoryLabel>{getCategoryName(stat.category)}</CategoryLabel>
+              <ProgressBarBackground>
+                <ProgressBarFill width={`${stat.correct_rate}%`} />
+              </ProgressBarBackground>
+            </div>
+          ))
+        ) : (
+          <Text>학습 데이터가 없습니다.</Text>
+        )}
+      </Card3>
       
-      <Card4 />
-      <ProgressBarBackground4 />
-      <ProgressBarFill4 width="115.69px" />
-      <ProgressBarBackground5 />
-      <ProgressBarFill5 width="115.69px" />
-      <ProgressBarBackground6 />
-      <ProgressBarFill6 width="115.69px" />
-      <ProgressBarBackground7 />
-      <ProgressBarFill7 width="115.69px" />
-      <ProgressBarBackground8 />
-      <ProgressBarFill8 width="115.69px" />
-      <Text style={{ position: 'absolute', left: '218px', top: '480px' }}>난이도별 학습현황</Text>
-      <Divider3 />
+      <Card4>
+        <CardTitle>난이도별 학습현황</CardTitle>
+        <Divider2 />
+        {studyStats?.difficulty_stats ? (
+          studyStats.difficulty_stats.map((stat, index) => (
+            <div key={index}>
+              <CategoryLabel>{getDifficultyDescription(stat.level)}</CategoryLabel>
+              <ProgressBarBackground>
+                <ProgressBarFill width={`${stat.correct_rate}%`} />
+              </ProgressBarBackground>
+            </div>
+          ))
+        ) : (
+          <Text>학습 데이터가 없습니다.</Text>
+        )}
+      </Card4>
       
       <QuizButton onClick={handleQuizClick}>
         <ButtonText>한국어 능력 확인 하러가기</ButtonText>
       </QuizButton>
       
-      <LogoutText>로그아웃</LogoutText>
+      <LogoutText onClick={handleLogout}>로그아웃</LogoutText>
       
       <Avatar>
-        <AvatarText>S</AvatarText>
+        <AvatarText>{user?.study_level || 'B'}</AvatarText>
       </Avatar>
-      
-      <Divider />
     </DashboardContainer>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

@@ -1,3 +1,4 @@
+// src/pages/Quiz.tsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
@@ -5,72 +6,12 @@ import QuizRightModal from './modal/QuizRightModal';
 import QuizWrongModal from './modal/QuizWrongModal';
 import QuitQuizModal from './modal/QuitQuizModal';
 import Loading from './Loading';
-
-// 퀴즈 데이터 타입
-interface QuizQuestion {
-  question_id: string;
-  wrong_sentence: string;
-  right_sentence: string;
-  wrong_word: string;
-  right_word: string;
-  location: string;
-  difficulty_level: number;
-  explanation: string;
-}
-
-// 샘플 퀴즈 데이터 (CSV 데이터 기반)
-const sampleQuestions: QuizQuestion[] = [
-  {
-    question_id: "1",
-    wrong_sentence: "일을 하던지 말던지 마음을 정해야지.",
-    right_sentence: "일을 하든지 말든지 마음을 정해야지.",
-    wrong_word: "하던지 말던지",
-    right_word: "하든지 말든지",
-    location: "일을 [하든지 말든지] 마음을 정해야지.",
-    difficulty_level: 3,
-    explanation: "'-던'은 과거에 일어난 일을 회상하여 말할 때 쓰는 어미입니다. 따라서 \"하던지 말던지\"는 문법적으로 맞지 않습니다."
-  },
-  {
-    question_id: "2",
-    wrong_sentence: "방을 깨끗히 유지하는 것이 중요하다.",
-    right_sentence: "방을 깨끗이 유지하는 것이 중요하다.",
-    wrong_word: "깨끗히",
-    right_word: "깨끗이",
-    location: "방을 [깨끗이] 유지하는 것이 중요하다.",
-    difficulty_level: 1,
-    explanation: "뒤에 -하다가 붙을 수 있는 어근 가운데 끝 음절이 'ㅅ' 받침으로 끝나는 경우엔 -이로 적습니다."
-  },
-  {
-    question_id: "3",
-    wrong_sentence: "부끄러움을 무릎쓰다.",
-    right_sentence: "부끄러움을 무릅쓰다.",
-    wrong_word: "무릎쓰고",
-    right_word: "무릅쓰고",
-    location: "부끄러움을 [무릅쓰다].",
-    difficulty_level: 4,
-    explanation: "무릎은 넓적다리와 정강이를 잇는 부분을 말하는데, 이 무릎을 쓸 때는 무릅이 아니라 무릎이 맞습니다. 그러나 '실례를 무릅쓰고', '실례를 무릅쓰다' 라고 할 때는 '무릅쓰다'가 맞습니다."
-  },
-  {
-    question_id: "4",
-    wrong_sentence: "그는 나에게 책을 주었다.",
-    right_sentence: "그는 나에게 책을 주었다.",
-    wrong_word: "주었다",
-    right_word: "주었다",
-    location: "그는 나에게 책을 [주었다].",
-    difficulty_level: 1,
-    explanation: "이 문장은 문법적으로 맞습니다."
-  },
-  {
-    question_id: "5",
-    wrong_sentence: "나는 어제 학교에 갔다.",
-    right_sentence: "나는 어제 학교에 갔다.",
-    wrong_word: "갔다",
-    right_word: "갔다",
-    location: "나는 어제 학교에 [갔다].",
-    difficulty_level: 1,
-    explanation: "이 문장은 문법적으로 맞습니다."
-  }
-];
+import { Question } from '../types/auth';
+import { questionService } from '../api/services';
+import { logService } from '../api/services';
+import { studyService } from '../api/services';
+import { getSessionToken, setSessionToken } from '../api/axios';
+import { sessionService } from '../api/services';
 
 const QuizContainer = styled.div`
   width: 393px;
@@ -246,7 +187,7 @@ const HighlightedText = styled.span`
 
 const Quiz: React.FC = () => {
   const navigate = useNavigate();
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showRightModal, setShowRightModal] = useState(false);
@@ -258,26 +199,56 @@ const Quiz: React.FC = () => {
   const [showWrongSentence, setShowWrongSentence] = useState(true);
   const [options, setOptions] = useState<string[]>([]);
   const [correctOptionIndex, setCorrectOptionIndex] = useState(0);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [startTime, setStartTime] = useState<number>(0);
+  const [timeSpent, setTimeSpent] = useState<number[]>([]);
 
   // 한글 숫자 배열
   const koreanNumbers = ['하나', '둘', '셋', '넷', '다섯', '여섯', '일곱', '여덟', '아홉', '열'];
 
+  // 세션 생성 또는 가져오기
   useEffect(() => {
-    // 임시로 샘플 데이터 사용
+    const initSession = async () => {
+      try {
+        // 기존 세션 확인
+        const existingSessionToken = getSessionToken();
+        
+        if (!existingSessionToken) {
+          // 새 세션 생성
+          const sessionData = await sessionService.createSession();
+          setSessionId(sessionData.session_id);
+          setSessionToken(sessionData.session_id);
+        } else {
+          setSessionId(existingSessionToken);
+        }
+      } catch (error) {
+        console.error('Failed to initialize session:', error);
+      }
+    };
+
+    initSession();
+  }, []);
+
+  // 문제 가져오기
+  useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        // API 호출 대신 지연 시간 추가
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setQuestions(sampleQuestions);
+        setIsLoading(true);
+        // 실제 API 사용
+        const fetchedQuestions = await questionService.getQuestions({ limit: 10 }); 
+        setQuestions(fetchedQuestions);
         setIsLoading(false);
+        setStartTime(Date.now());
       } catch (error) {
         console.error('Failed to fetch questions:', error);
         setIsLoading(false);
       }
     };
 
-    fetchQuestions();
-  }, []);
+    if (sessionId) {
+      fetchQuestions();
+    }
+  }, [sessionId]);
 
   // 문제가 로드되면 현재 문제에 대한 옵션을 설정
   useEffect(() => {
@@ -289,6 +260,7 @@ const Quiz: React.FC = () => {
   // 현재 문제에 대한 옵션을 설정하는 함수
   const setupCurrentQuestion = () => {
     const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion) return;
     
     // 랜덤하게 틀린 문장 또는 맞은 문장을 보여줄지 결정
     const showWrong = Math.random() > 0.5;
@@ -304,20 +276,49 @@ const Quiz: React.FC = () => {
     // 정답 인덱스 찾기
     const correctIndex = shuffledOptions.indexOf(currentQuestion.right_word);
     setCorrectOptionIndex(correctIndex);
+    
+    // 시작 시간 설정
+    setStartTime(Date.now());
   };
 
-  const handleAnswerSelect = (answerIndex: number) => {
+  const handleAnswerSelect = async (answerIndex: number) => {
     if (selectedAnswer !== null) return; // 이미 답을 선택한 경우
 
     setSelectedAnswer(answerIndex);
     const isAnswerCorrect = answerIndex === correctOptionIndex;
     setIsCorrect(isAnswerCorrect);
     
+    // 소요 시간 계산 (초 단위)
+    const elapsedTime = (Date.now() - startTime) / 1000;
+    setTimeSpent([...timeSpent, elapsedTime]);
+    
+    // 정답 여부에 따라 모달 표시
     if (isAnswerCorrect) {
       setCorrectAnswers(prev => prev + 1);
       setShowRightModal(true);
     } else {
       setShowWrongModal(true);
+    }
+    
+    // 학습 로그 기록
+    try {
+      if (sessionId) {
+        // 로그 API 호출
+        await logService.createLog({
+          question_id: questions[currentQuestionIndex].question_id,
+          correct: isAnswerCorrect,
+          delaytime: elapsedTime
+        });
+        
+        // 학습 결과 제출
+        await studyService.submitAnswer({
+          session_token: sessionId,
+          question_id: questions[currentQuestionIndex].question_id,
+          correct: isAnswerCorrect
+        });
+      }
+    } catch (error) {
+      console.error('Failed to log answer:', error);
     }
   };
 
@@ -333,7 +334,9 @@ const Quiz: React.FC = () => {
       navigate('/statistics', { 
         state: { 
           totalQuestions: questions.length, 
-          correctAnswers 
+          correctAnswers,
+          averageTime: timeSpent.reduce((a, b) => a + b, 0) / timeSpent.length,
+          totalTime: timeSpent.reduce((a, b) => a + b, 0)
         } 
       });
     }
@@ -349,6 +352,8 @@ const Quiz: React.FC = () => {
 
   // 문제 텍스트에서 강조할 부분을 찾아 하이라이트 처리하는 함수
   const getHighlightedQuestionText = () => {
+    if (questions.length === 0 || !questions[currentQuestionIndex]) return '';
+    
     const currentQuestion = questions[currentQuestionIndex];
     const questionText = showWrongSentence ? currentQuestion.wrong_sentence : currentQuestion.right_sentence;
     const highlightWord = showWrongSentence ? currentQuestion.wrong_word : currentQuestion.right_word;
@@ -392,7 +397,7 @@ const Quiz: React.FC = () => {
     <QuizContainer>
       <QuizImage src="/onboarding.png" alt="로고" />
       <Header>
-        <Progress>{koreanNumbers[currentQuestionIndex]}</Progress>
+        <Progress>{currentQuestionIndex + 1} / {questions.length}</Progress>
       </Header>
 
       <QuestionText>{getHighlightedQuestionText()}</QuestionText>
@@ -405,6 +410,7 @@ const Quiz: React.FC = () => {
             isCorrect={selectedAnswer !== null && index === correctOptionIndex}
             isWrong={selectedAnswer === index && selectedAnswer !== correctOptionIndex}
             onClick={() => handleAnswerSelect(index)}
+            disabled={selectedAnswer !== null}
           >
             {option}
           </OptionButton>
@@ -420,7 +426,7 @@ const Quiz: React.FC = () => {
       <NavigationButtons>
         {selectedAnswer !== null && (
           <NavigationButton onClick={handleNextQuestion}>
-            {isLastQuestion ? '결과 보기' : '하든지 말든지'}
+            {isLastQuestion ? '결과 보기' : '다음 문제'}
           </NavigationButton>
         )}
       </NavigationButtons>
@@ -434,7 +440,9 @@ const Quiz: React.FC = () => {
         onClose={() => setShowRightModal(false)}
         onNext={handleNextQuestion}
         isLastQuestion={isLastQuestion}
-        explanation={currentQuestion.explanation}
+        explanation={currentQuestion?.explanation}
+        rightWord={currentQuestion?.right_word}
+        rightSentence={currentQuestion?.right_sentence}
       />
 
       <QuizWrongModal 
@@ -442,8 +450,12 @@ const Quiz: React.FC = () => {
         onClose={() => setShowWrongModal(false)}
         onNext={handleNextQuestion}
         isLastQuestion={isLastQuestion}
-        correctAnswer={currentQuestion.right_word}
-        explanation={currentQuestion.explanation}
+        correctAnswer={currentQuestion?.right_word || ''}
+        explanation={currentQuestion?.explanation}
+        wrongWord={currentQuestion?.wrong_word}
+        rightWord={currentQuestion?.right_word}
+        wrongSentence={currentQuestion?.wrong_sentence}
+        rightSentence={currentQuestion?.right_sentence}
       />
 
       <QuitQuizModal 
@@ -455,4 +467,4 @@ const Quiz: React.FC = () => {
   );
 };
 
-export default Quiz; 
+export default Quiz;
