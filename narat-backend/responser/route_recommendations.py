@@ -105,7 +105,7 @@ async def get_recommendation(item: RecommendationsSuccessForm, db: Session = Dep
         
         # SasRec 모델을 사용한 추천
         recommender = get_recommender(db)
-        recommendations = recommender.recommend(sequence, top_k=5)
+        recommendations = recommender.recommend(sequence, top_k=10)
         
         # 추천 결과 저장
         result_data = []

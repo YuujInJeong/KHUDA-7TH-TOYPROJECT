@@ -10,22 +10,25 @@ const LoadingContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin: 0 auto;
 `;
 
 const Logo = styled.img`
   width: 53px;
   height: 43px;
   position: absolute;
-  left: 170px;
+  left: 50%;
   top: 19px;
+  transform: translateX(-50%);
 `;
 
 const LoadingImage = styled.img`
   width: 298px;
   height: 298px;
   position: absolute;
-  left: 57px;
+  left: 50%;
   top: 251px;
+  transform: translateX(-50%);
 `;
 
 const LoadingText = styled.span`
@@ -36,7 +39,10 @@ const LoadingText = styled.span`
   word-wrap: break-word;
   position: absolute;
   top: 580px;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
+  width: 100%;
 `;
 
 const Loading: React.FC = () => {
