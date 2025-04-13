@@ -1,17 +1,16 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import styled from 'styled-components';
 
 const LoadingContainer = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
+  justify-content: center;
+  min-height: 100vh;
   background-color: #f5f5f5;
 `;
 
-const LoadingSpinner = styled.div`
+const Spinner = styled.div`
   width: 50px;
   height: 50px;
   border: 5px solid #f3f3f3;
@@ -32,28 +31,10 @@ const LoadingText = styled.p`
 `;
 
 const Loading: React.FC = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // 토큰이 있는지 확인
-    const token = localStorage.getItem('token');
-    
-    // 2초 후에 적절한 페이지로 리다이렉트
-    const timer = setTimeout(() => {
-      if (token) {
-        navigate('/dashboard');
-      } else {
-        navigate('/onboarding');
-      }
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [navigate]);
-
   return (
     <LoadingContainer>
-      <LoadingSpinner />
-      <LoadingText>로딩중...</LoadingText>
+      <Spinner />
+      <LoadingText>로딩 중...</LoadingText>
     </LoadingContainer>
   );
 };

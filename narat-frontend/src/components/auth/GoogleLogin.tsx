@@ -42,8 +42,10 @@ const GoogleLogin: React.FC = () => {
     // For now, just mock the login
     login({
       id: '1',
+      username: 'Test User',
       email: 'test@example.com',
-      name: 'Test User',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
   };
 

@@ -1,48 +1,51 @@
 import React from 'react';
 import styled from 'styled-components';
 
-type InputSize = 'small' | 'medium' | 'large';
-
-interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+  size?: 'small' | 'medium' | 'large';
   error?: boolean;
-  fullWidth?: boolean;
-  size?: InputSize;
 }
 
-const Input = styled.input<InputProps>`
-  width: ${({ fullWidth }) => (fullWidth ? '100%' : 'auto')};
-  padding: ${({ size }) => {
+const StyledInput = styled.input<InputProps>`
+  width: 100%;
+  padding: ${({ size = 'medium' }) => {
     switch (size) {
       case 'small':
-        return '0.5rem';
+        return '8px 12px';
       case 'large':
-        return '1rem';
+        return '16px 20px';
       default:
-        return '0.75rem';
+        return '12px 16px';
     }
   }};
-  border: 1px solid ${({ theme, error }) => (error ? theme.colors.error : theme.colors.gray[300])};
+  border: 1px solid ${({ theme, error }) => error ? theme.colors.error : theme.colors.gray[300]};
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  font-size: ${({ theme }) => theme.fontSizes.base};
-  color: ${({ theme }) => theme.colors.text};
-  background-color: ${({ theme }) => theme.colors.white};
+  font-size: ${({ theme, size = 'medium' }) => {
+    switch (size) {
+      case 'small':
+        return theme.fontSizes.sm;
+      case 'large':
+        return theme.fontSizes.lg;
+      default:
+        return theme.fontSizes.base;
+    }
+  }};
   transition: all 0.2s ease-in-out;
 
   &:focus {
     outline: none;
-    border-color: ${({ theme, error }) => (error ? theme.colors.error : theme.colors.primary)};
-    box-shadow: 0 0 0 2px ${({ theme, error }) =>
-      error ? `${theme.colors.error}33` : `${theme.colors.primary}33`};
+    border-color: ${({ theme, error }) => error ? theme.colors.error : theme.colors.primary};
+    box-shadow: 0 0 0 2px ${({ theme, error }) => error ? `${theme.colors.error}33` : `${theme.colors.primary}33`};
   }
 
   &:disabled {
     background-color: ${({ theme }) => theme.colors.gray[100]};
     cursor: not-allowed;
   }
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.gray[400]};
-  }
 `;
 
-export default Input;
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  (props, ref) => <StyledInput ref={ref} {...props} />
+);
+
+Input.displayName = 'Input';

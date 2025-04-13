@@ -1,21 +1,26 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/common/Button';
 
 const LoginContainer = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
+  justify-content: center;
+  min-height: 100vh;
   background-color: #f5f5f5;
+  padding: 20px;
 `;
 
-const LoginBox = styled.div`
+const LoginCard = styled.div`
   background-color: white;
-  padding: 40px;
   border-radius: 10px;
+  padding: 40px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
   text-align: center;
 `;
 
@@ -25,47 +30,54 @@ const Title = styled.h1`
   margin-bottom: 30px;
 `;
 
-const GoogleButton = styled.button`
+const GoogleButton = styled(Button)`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
+  gap: 10px;
+  width: 100%;
   background-color: white;
   color: #333;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 12px 24px;
   font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: #f8f8f8;
   }
 `;
 
 const GoogleIcon = styled.img`
   width: 24px;
   height: 24px;
-  margin-right: 10px;
 `;
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleGoogleLogin = () => {
-    // Google OAuth URL로 리다이렉트
-    window.location.href = 'https://api.khuda-ml.store/auth/google/login';
+  const handleGoogleLogin = async () => {
+    // TODO: 실제 Google OAuth 로그인 구현
+    // 임시로 로그인 처리
+    login({
+      id: '1',
+      username: 'Test User',
+      email: 'test@example.com',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    navigate('/dashboard');
   };
 
   return (
     <LoginContainer>
-      <LoginBox>
+      <LoginCard>
         <Title>NARAT 로그인</Title>
         <GoogleButton onClick={handleGoogleLogin}>
           <GoogleIcon src="/google-icon.png" alt="Google" />
           Google로 로그인
         </GoogleButton>
-      </LoginBox>
+      </LoginCard>
     </LoginContainer>
   );
 };

@@ -80,8 +80,8 @@ export const Button = styled.button<ButtonProps>`
   align-items: center;
   justify-content: center;
   border-radius: ${theme.borderRadius.md};
-  font-weight: ${theme.fontWeights.medium};
-  transition: all ${theme.transitions.duration.normal} ${theme.transitions.easing['ease-in-out']};
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
   cursor: pointer;
   width: ${({ fullWidth }) => (fullWidth ? '100%' : 'auto')};
   opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};

@@ -1,165 +1,153 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { api } from '../api/axios';
-
-interface Question {
-  question_id: string;
-  wrong_sentence: string;
-  right_sentence: string;
-  wrong_word: string;
-  right_word: string;
-  explanation: string;
-}
+import { useNavigate } from 'react-router-dom';
+import { Button } from '../components/common/Button';
 
 const QuizContainer = styled.div`
+  min-height: 100vh;
+  background-color: #f5f5f5;
   padding: 20px;
+`;
+
+const QuizCard = styled.div`
   max-width: 800px;
   margin: 0 auto;
+  background-color: white;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-const Header = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-`;
-
-const Title = styled.h1`
+const QuestionText = styled.h2`
   font-size: 24px;
   color: #333;
+  margin-bottom: 30px;
+  text-align: center;
 `;
 
-const QuitButton = styled.button`
-  padding: 8px 16px;
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #c0392b;
-  }
+const OptionsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
 `;
 
-const QuestionCard = styled.div`
-  background-color: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-`;
-
-const Sentence = styled.p`
-  font-size: 18px;
-  color: #333;
-  margin-bottom: 20px;
-  line-height: 1.6;
-`;
-
-const AnswerInput = styled.input`
+const OptionButton = styled(Button)<{ isSelected: boolean; isCorrect?: boolean }>`
   width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  border: 2px solid #ddd;
-  border-radius: 5px;
-  margin-bottom: 20px;
-
-  &:focus {
-    outline: none;
-    border-color: #3498db;
-  }
-`;
-
-const SubmitButton = styled.button`
-  width: 100%;
-  padding: 12px;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
+  text-align: left;
+  padding: 15px 20px;
+  background-color: ${props => 
+    props.isCorrect === true ? '#2ecc71' : 
+    props.isCorrect === false ? '#e74c3c' : 
+    props.isSelected ? '#3498db' : 'white'};
+  color: ${props => 
+    props.isCorrect !== undefined ? 'white' : '#333'};
+  border: 1px solid #ddd;
+  
   &:hover {
-    background-color: #2980b9;
+    background-color: ${props => 
+      props.isCorrect !== undefined ? props.isCorrect ? '#2ecc71' : '#e74c3c' : 
+      '#f0f0f0'};
   }
 `;
+
+const NavigationButtons = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+`;
+
+const ProgressText = styled.p`
+  text-align: center;
+  color: #666;
+  margin-bottom: 20px;
+`;
+
+// 임시 퀴즈 데이터
+const sampleQuestions = [
+  {
+    id: 1,
+    question: '다음 중 올바른 한국어 문장은?',
+    options: [
+      '나는 학교에 가요',
+      '나는 학교에 가다',
+      '나는 학교에 가고',
+      '나는 학교에 가는'
+    ],
+    correctAnswer: 0
+  },
+  {
+    id: 2,
+    question: '다음 중 존댓말이 아닌 것은?',
+    options: [
+      '안녕하세요',
+      '감사합니다',
+      '잘가',
+      '실례합니다'
+    ],
+    correctAnswer: 2
+  }
+];
 
 const Quiz: React.FC = () => {
   const navigate = useNavigate();
-  const [question, setQuestion] = useState<Question | null>(null);
-  const [answer, setAnswer] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showResult, setShowResult] = useState(false);
 
-  useEffect(() => {
-    fetchQuestion();
-  }, []);
+  const currentQuestion = sampleQuestions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === sampleQuestions.length - 1;
 
-  const fetchQuestion = async () => {
-    try {
-      const response = await api.get('/questions/random');
-      setQuestion(response.data);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Failed to fetch question:', error);
-      setIsLoading(false);
-    }
+  const handleOptionSelect = (optionIndex: number) => {
+    if (showResult) return;
+    setSelectedAnswer(optionIndex);
   };
 
-  const handleSubmit = async () => {
-    if (!question) return;
-
-    try {
-      const isCorrect = answer.toLowerCase() === question.right_word.toLowerCase();
-      await api.post('/logs', {
-        question_id: question.question_id,
-        correct: isCorrect,
-        delaytime: 0, // TODO: 실제 시간 측정 구현
-      });
-
-      if (isCorrect) {
-        // TODO: 정답 모달 표시
+  const handleNext = () => {
+    if (selectedAnswer === null) return;
+    
+    setShowResult(true);
+    
+    setTimeout(() => {
+      if (isLastQuestion) {
+        navigate('/dashboard');
       } else {
-        // TODO: 오답 모달 표시
+        setCurrentQuestionIndex(prev => prev + 1);
+        setSelectedAnswer(null);
+        setShowResult(false);
       }
-    } catch (error) {
-      console.error('Failed to submit answer:', error);
-    }
+    }, 1500);
   };
-
-  const handleQuit = () => {
-    // TODO: 퀴즈 종료 모달 표시
-  };
-
-  if (isLoading) {
-    return <div>로딩중...</div>;
-  }
-
-  if (!question) {
-    return <div>문제를 불러올 수 없습니다.</div>;
-  }
 
   return (
     <QuizContainer>
-      <Header>
-        <Title>오늘의 퀴즈</Title>
-        <QuitButton onClick={handleQuit}>종료하기</QuitButton>
-      </Header>
-
-      <QuestionCard>
-        <Sentence>{question.wrong_sentence}</Sentence>
-        <AnswerInput
-          type="text"
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          placeholder="정답을 입력하세요"
-        />
-        <SubmitButton onClick={handleSubmit}>제출하기</SubmitButton>
-      </QuestionCard>
+      <QuizCard>
+        <ProgressText>
+          문제 {currentQuestionIndex + 1} / {sampleQuestions.length}
+        </ProgressText>
+        <QuestionText>{currentQuestion.question}</QuestionText>
+        <OptionsContainer>
+          {currentQuestion.options.map((option, index) => (
+            <OptionButton
+              key={index}
+              onClick={() => handleOptionSelect(index)}
+              isSelected={selectedAnswer === index}
+              isCorrect={showResult ? index === currentQuestion.correctAnswer : undefined}
+            >
+              {option}
+            </OptionButton>
+          ))}
+        </OptionsContainer>
+        <NavigationButtons>
+          <Button onClick={() => navigate('/dashboard')}>취소</Button>
+          <Button 
+            onClick={handleNext}
+            disabled={selectedAnswer === null}
+          >
+            {isLastQuestion ? '완료' : '다음'}
+          </Button>
+        </NavigationButtons>
+      </QuizCard>
     </QuizContainer>
   );
 };
