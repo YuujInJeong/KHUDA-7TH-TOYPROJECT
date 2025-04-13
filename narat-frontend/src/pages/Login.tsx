@@ -1,83 +1,124 @@
-import React from 'react';
-import styled from 'styled-components';
+import React, { useEffect, useState } from 'react';
+import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/common/Button';
 
-const LoginContainer = styled.div`
+const fadeOut = keyframes`
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+`;
+
+const fadeIn = keyframes`
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+`;
+
+const LoginContainer = styled.div<{ isFading: boolean }>`
+  width: 393px;
+  height: 852px;
+  position: relative;
+  background: #FFF8E2;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 20px;
+  margin: 0 auto;
+  animation: ${({ isFading }) => (isFading ? fadeOut : fadeIn)} 1s ease-in-out forwards;
 `;
 
-const LoginCard = styled.div`
-  background-color: white;
-  border-radius: 10px;
-  padding: 40px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
+const LogoImage = styled.img`
+  width: 31px;
+  height: 31px;
+  position: absolute;
+  left: 12px;
+  top: 16px;
+  object-fit: contain;
 `;
 
-const Title = styled.h1`
-  font-size: 24px;
-  color: #333;
-  margin-bottom: 30px;
+const LoginImage = styled.img`
+  width: 390px;
+  height: 315px;
+  margin-bottom: 2rem;
 `;
 
-const GoogleButton = styled(Button)`
+const WelcomeText = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  width: 100%;
-  background-color: white;
-  color: #333;
-  border: 1px solid #ddd;
-  padding: 12px 24px;
-  font-size: 16px;
-
-  &:hover {
-    background-color: #f8f8f8;
-  }
+  margin-bottom: 2rem;
 `;
 
-const GoogleIcon = styled.img`
-  width: 24px;
-  height: 24px;
+const UserName = styled.span`
+  color: #143E00;
+  font-size: 15px;
+  font-family: 'Hakgyoansim Allimjang TTF', sans-serif;
+  font-weight: 400;
+  word-wrap: break-word;
+`;
+
+const Space = styled.span`
+  color: #8D8D8D;
+  font-size: 15px;
+  font-family: 'Hakgyoansim Allimjang TTF', sans-serif;
+  font-weight: 400;
+  word-wrap: break-word;
+`;
+
+const Welcome = styled.span`
+  color: #8D8D8D;
+  font-size: 20px;
+  font-family: 'Hakgyoansim Allimjang TTF', sans-serif;
+  font-weight: 400;
+  word-wrap: break-word;
 `;
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [userName, setUserName] = useState('USER');
+  const [isFading, setIsFading] = useState(false);
 
-  const handleGoogleLogin = async () => {
-    // TODO: 실제 Google OAuth 로그인 구현
-    // 임시로 로그인 처리
-    login({
-      id: '1',
-      username: 'Test User',
-      email: 'test@example.com',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
-    navigate('/dashboard');
-  };
+  useEffect(() => {
+    // 2초 후에 자동으로 대시보드로 이동
+    const timer = setTimeout(() => {
+      setIsFading(true);
+      
+      // 페이드 아웃 애니메이션을 위한 지연
+      setTimeout(() => {
+        // TODO: 실제 Google OAuth 로그인 구현
+        // 임시로 로그인 처리
+        login({
+          id: '1',
+          username: 'Test User',
+          email: 'test@example.com',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+        navigate('/dashboard');
+      }, 1000);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [navigate, login]);
 
   return (
-    <LoginContainer>
-      <LoginCard>
-        <Title>NARAT 로그인</Title>
-        <GoogleButton onClick={handleGoogleLogin}>
-          <GoogleIcon src="/google-icon.png" alt="Google" />
-          Google로 로그인
-        </GoogleButton>
-      </LoginCard>
+    <LoginContainer isFading={isFading}>
+      <LogoImage src="/khud_logo.png" alt="KHUD 로고" />
+      <LoginImage src="/onboarding.png" alt="로그인 이미지" />
+      <WelcomeText>
+        <UserName>{userName}님</UserName>
+        <Welcome>환영합니다</Welcome>
+      </WelcomeText>
     </LoginContainer>
   );
 };

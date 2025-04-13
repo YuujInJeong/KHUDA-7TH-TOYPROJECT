@@ -3,48 +3,63 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
 const NotFoundContainer = styled.div`
+  width: 393px;
+  height: 852px;
+  position: relative;
+  background: #FFF8E2;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background-color: #f5f5f5;
+  margin: 0 auto;
+`;
+
+const Logo = styled.img`
+  width: 53px;
+  height: 43px;
+  position: absolute;
+  left: 170px;
+  top: 19px;
+`;
+
+const Title = styled.span`
+  color: black;
+  font-size: 28px;
+  font-family: Gmarket Sans TTF;
+  font-weight: 700;
+  word-wrap: break-word;
+  position: absolute;
+  top: 580px;
   text-align: center;
-  padding: 20px;
 `;
 
-const Title = styled.h1`
-  font-size: 48px;
-  color: #333;
-  margin-bottom: 20px;
-`;
-
-const Message = styled.p`
-  font-size: 18px;
-  color: #666;
-  margin-bottom: 30px;
-`;
-
-const HomeLink = styled(Link)`
-  padding: 10px 20px;
-  background-color: #3498db;
-  color: white;
+const BackLink = styled(Link)`
+  color: #3C3A3A;
+  font-size: 15px;
+  font-family: Gmarket Sans TTF;
+  font-weight: 500;
+  word-wrap: break-word;
   text-decoration: none;
-  border-radius: 5px;
-  font-weight: bold;
-  transition: background-color 0.3s;
+  position: absolute;
+  left: 43px;
+  bottom: 43px;
+`;
 
-  &:hover {
-    background-color: #2980b9;
-  }
+const NotFoundImage = styled.img`
+  width: 387px;
+  height: 258px;
+  position: absolute;
+  left: 3px;
+  top: 297px;
 `;
 
 const NotFound: React.FC = () => {
   return (
     <NotFoundContainer>
-      <Title>404</Title>
-      <Message>페이지를 찾을 수 없습니다.</Message>
-      <HomeLink to="/">홈으로 돌아가기</HomeLink>
+      <Logo src="/onboarding.png" alt="로고" />
+      <NotFoundImage src="/notfound.png" alt="404 이미지" />
+      <Title>잘못 찾아왔네</Title>
+      <BackLink to="/">처음으로</BackLink>
     </NotFoundContainer>
   );
 };

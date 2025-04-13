@@ -5,7 +5,6 @@ import { GlobalStyle } from './styles/globalStyles';
 import AppRoutes from './routes';
 
 // Components
-import GoogleLogin from './components/auth/GoogleLogin';
 import { UserProfileForm } from './components/auth/UserProfileForm';
 
 const App: React.FC = () => {

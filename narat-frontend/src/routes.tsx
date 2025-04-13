@@ -1,20 +1,24 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Onboarding from './pages/Onboarding';
-import GoogleLogin from './components/auth/GoogleLogin';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Quiz from './pages/Quiz';
 import Statistics from './pages/Statistics';
+import Loading from './pages/Loading';
+import NotFound from './pages/NotFound';
 import { UserProfileForm } from './components/auth/UserProfileForm';
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Onboarding />} />
-      <Route path="/login" element={<GoogleLogin />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/quiz" element={<Quiz />} />
       <Route path="/statistics" element={<Statistics />} />
+      <Route path="/loading" element={<Loading />} />
+      <Route path="/notfound" element={<NotFound />} />
       <Route
         path="/profile"
         element={
@@ -30,7 +34,7 @@ const AppRoutes: React.FC = () => {
           />
         }
       />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/notfound" replace />} />
     </Routes>
   );
 };

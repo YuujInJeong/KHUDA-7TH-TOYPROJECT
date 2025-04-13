@@ -14,7 +14,7 @@ class UserDB(Base):
     display_name = Column(String, index=True)
     created_at   = Column(DateTime(timezone=True), server_default=func.now())
     last_login   = Column(DateTime(timezone=True), server_default=func.now())
-    study_level  = Column(Integer, default=1)
+    study_level  = Column(String, default='B')  # 'S', 'A', 'B' 레벨
     
     rec_items     = relationship("RecommendationsDB", back_populates="rec_owner")
     session_items = relationship("SessionDB", back_populates="session_owner")

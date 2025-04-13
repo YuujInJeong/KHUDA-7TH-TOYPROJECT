@@ -138,6 +138,25 @@ erDiagram
 - **Level 4**: 헷갈린다. 네이버 검색 ㄱㄱ (예: 반짓고리/반짇고리)
 - **Level 5**: 충격!!! 말도 안돼. (예: 면이 불다/면이 붇다)
 
+### 학습 레벨 (Study Level)
+
+사용자의 전반적인 학습 성과를 나타내는 레벨입니다:
+
+- **S**: 최상위 레벨 (Super)
+  - 높은 정답률과 빠른 응답 시간
+  - 모든 난이도의 문제를 잘 풀어냄
+  - 일관된 학습 패턴 보유
+
+- **A**: 중상위 레벨 (Advanced)
+  - 양호한 정답률과 응답 시간
+  - 중간~높은 난이도의 문제를 잘 풀어냄
+  - 안정적인 학습 패턴 보유
+
+- **B**: 기본 레벨 (Basic)
+  - 기본적인 학습 진행 중
+  - 낮은~중간 난이도의 문제에 집중
+  - 학습 패턴 발전 중
+
 ## API 문서
 
 ### 인증 API
@@ -204,6 +223,107 @@ erDiagram
   - `limit`: 조회할 세션 수 (기본값: 10)
   - `offset`: 시작 위치 (기본값: 0)
 - **GET /sessions/{session_id}**: 특정 세션 정보 조회
+
+### 학습 API
+
+- **POST /api/study/submit**: 학습 결과 제출
+  - Request Body:
+    ```json
+    {
+      "session_token": "string",
+      "question_id": "integer",
+      "correct": "boolean"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "success": "true",
+      "explanation": "string"
+    }
+    ```
+
+- **POST /api/study/recent-wrong**: 최근에 틀린 문제 목록 조회
+  - Request Body:
+    ```json
+    {
+      "session_token": "string",
+      "limit": "integer (default: 5)"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "recent_wrong_answers": [
+        {
+          "wrong_sentence": "string",
+          "right_sentence": "string",
+          "wrong_word": "string",
+          "right_word": "string",
+          "explanation": "string",
+          "created_at": "string (ISO format)"
+        }
+      ]
+    }
+    ```
+
+- **POST /api/study/stats**: 학습 통계 조회
+  - Request Body:
+    ```json
+    {
+      "session_token": "string"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "category_stats": [
+        {
+          "category": "string",
+          "total": "integer",
+          "correct": "integer",
+          "correct_rate": "float"
+        }
+      ],
+      "difficulty_stats": [
+        {
+          "level": "integer",
+          "total": "integer",
+          "correct": "integer",
+          "correct_rate": "float"
+        }
+      ]
+    }
+    ```
+
+- **POST /api/study/recent-history**: 최근 학습 내역 조회
+  - Request Body:
+    ```json
+    {
+      "session_token": "string",
+      "limit": "integer (default: 10)"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "recent_history": [
+        {
+          "question_id": "integer",
+          "wrong_sentence": "string",
+          "right_sentence": "string",
+          "correct": "boolean",
+          "time_spent": "float",
+          "created_at": "string (ISO format)"
+        }
+      ],
+      "time_stats": {
+        "average_time": "float",
+        "total_time": "float",
+        "total_questions": "integer"
+      }
+    }
+    ```
 
 서버 실행 후 다음 URL에서 API 문서를 확인할 수 있습니다:
 - Swagger UI: http://localhost:8000/docs
@@ -319,3 +439,21 @@ NARAT의 현재 추천 시스템은 SasRec(Self-Attentive Sequential Recommendat
    ```bash
    uvicorn main:app --reload
    ```
+
+## 데이터베이스 마이그레이션
+
+### Study Level 마이그레이션
+
+study level을 Integer에서 String('S', 'A', 'B')로 변경하는 마이그레이션을 실행하려면:
+
+```bash
+# 가상환경 활성화
+source venv/bin/activate  # Linux/Mac
+# 또는
+.\venv\Scripts\activate  # Windows
+
+# 마이그레이션 실행
+python migrations/study_level_migration.py
+```
+
+마이그레이션 후에는 모든 사용자의 study level이 'B'로 초기화되며, 이후 문제 풀이 결과에 따라 자동으로 'S' 또는 'A'로 업데이트됩니다.
