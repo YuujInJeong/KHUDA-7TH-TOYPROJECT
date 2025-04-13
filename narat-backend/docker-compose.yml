@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/narat
+      - SECRET_KEY=your-secret-key
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    networks:
+      - narat-network
+
+  db:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=narat
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - narat-network
+
+volumes:
+  postgres_data:
+
+networks:
+  narat-network:
+    driver: bridge 
