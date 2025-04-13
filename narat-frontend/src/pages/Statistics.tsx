@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../components/common/Button';
 
 const StatisticsContainer = styled.div`
@@ -64,16 +64,18 @@ const NavigationButtons = styled.div`
   margin-top: 30px;
 `;
 
-// 임시 통계 데이터
-const sampleStats = {
-  totalQuizzes: 50,
-  correctAnswers: 35,
-  averageTime: '2.5분',
-  accuracy: '70%'
-};
+interface LocationState {
+  totalQuestions: number;
+  correctAnswers: number;
+}
 
 const Statistics: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { totalQuestions, correctAnswers } = location.state as LocationState || { totalQuestions: 0, correctAnswers: 0 };
+
+  const accuracy = Math.round((correctAnswers / totalQuestions) * 100) || 0;
+  const averageTime = '2.5분'; // TODO: 실제 평균 시간 계산
 
   return (
     <StatisticsContainer>
@@ -82,19 +84,19 @@ const Statistics: React.FC = () => {
         
         <StatsGrid>
           <StatCard>
-            <StatValue>{sampleStats.totalQuizzes}</StatValue>
+            <StatValue>{totalQuestions}</StatValue>
             <StatLabel>총 퀴즈 수</StatLabel>
           </StatCard>
           <StatCard>
-            <StatValue>{sampleStats.correctAnswers}</StatValue>
+            <StatValue>{correctAnswers}</StatValue>
             <StatLabel>정답 수</StatLabel>
           </StatCard>
           <StatCard>
-            <StatValue>{sampleStats.averageTime}</StatValue>
+            <StatValue>{averageTime}</StatValue>
             <StatLabel>평균 응답 시간</StatLabel>
           </StatCard>
           <StatCard>
-            <StatValue>{sampleStats.accuracy}</StatValue>
+            <StatValue>{accuracy}%</StatValue>
             <StatLabel>정확도</StatLabel>
           </StatCard>
         </StatsGrid>
@@ -108,6 +110,7 @@ const Statistics: React.FC = () => {
 
         <NavigationButtons>
           <Button onClick={() => navigate('/dashboard')}>돌아가기</Button>
+          <Button onClick={() => navigate('/quiz')} variant="outline">다시 풀기</Button>
         </NavigationButtons>
       </StatisticsCard>
     </StatisticsContainer>

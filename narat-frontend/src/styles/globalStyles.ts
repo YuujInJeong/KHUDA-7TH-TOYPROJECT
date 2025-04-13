@@ -5,6 +5,7 @@ export const GlobalStyle = createGlobalStyle`
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html {
@@ -12,12 +13,23 @@ export const GlobalStyle = createGlobalStyle`
     font-family: ${({ theme }) => theme.fonts.body};
     color: ${({ theme }) => theme.colors.text};
     background-color: ${({ theme }) => theme.colors.white};
+    height: 100%;
+    overflow-x: hidden;
   }
 
   body {
     line-height: ${({ theme }) => theme.lineHeights.normal};
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  #root {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -28,27 +40,27 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   h1 {
-    font-size: ${({ theme }) => theme.fontSizes['4xl']};
-  }
-
-  h2 {
     font-size: ${({ theme }) => theme.fontSizes['3xl']};
   }
 
-  h3 {
+  h2 {
     font-size: ${({ theme }) => theme.fontSizes['2xl']};
   }
 
-  h4 {
+  h3 {
     font-size: ${({ theme }) => theme.fontSizes.xl};
   }
 
-  h5 {
+  h4 {
     font-size: ${({ theme }) => theme.fontSizes.lg};
   }
 
-  h6 {
+  h5 {
     font-size: ${({ theme }) => theme.fontSizes.base};
+  }
+
+  h6 {
+    font-size: ${({ theme }) => theme.fontSizes.sm};
   }
 
   p {
@@ -73,11 +85,14 @@ export const GlobalStyle = createGlobalStyle`
     border: none;
     background: none;
     padding: 0;
+    touch-action: manipulation;
   }
 
   input, textarea, select {
     font-family: ${({ theme }) => theme.fonts.body};
     font-size: ${({ theme }) => theme.fontSizes.base};
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   img {
@@ -158,5 +173,16 @@ export const GlobalStyle = createGlobalStyle`
   ::selection {
     background-color: ${({ theme }) => theme.colors.primary};
     color: ${({ theme }) => theme.colors.white};
+  }
+
+  /* 모바일 최적화 */
+  @media (max-width: 768px) {
+    html {
+      font-size: 14px;
+    }
+
+    input, textarea, select {
+      font-size: 16px; /* iOS에서 자동 확대 방지 */
+    }
   }
 `; 
