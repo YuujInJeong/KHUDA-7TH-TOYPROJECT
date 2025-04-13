@@ -135,19 +135,6 @@ const QuizWrongModal: React.FC<QuizWrongModalProps> = ({
 
   // 설명 텍스트에서 강조할 부분을 찾아 하이라이트 처리하는 함수
   const getHighlightedExplanation = () => {
-    // "하던지 말던지" 부분을 강조
-    const parts = explanation.split('하던지 말던지');
-    
-    if (parts.length > 1) {
-      return (
-        <>
-          {parts[0]}
-          <HighlightText>하던지 말던지</HighlightText>
-          {parts[1]}
-        </>
-      );
-    }
-    
     return explanation;
   };
 

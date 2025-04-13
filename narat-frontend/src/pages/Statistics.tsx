@@ -1,67 +1,236 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '../components/common/Button';
 
-const StatisticsContainer = styled.div`
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 20px;
-`;
-
-const StatisticsCard = styled.div`
-  max-width: 800px;
+const StyledContainer = styled.div`
+  width: 100%;
+  max-width: 393px;
+  height: 100vh;
+  position: relative;
+  background: #FFF8E2;
+  overflow: hidden;
   margin: 0 auto;
-  background-color: white;
-  border-radius: 10px;
-  padding: 30px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
-const Title = styled.h1`
+const StyledLogo = styled.img`
+  width: 53px;
+  height: 43px;
+  position: absolute;
+  top: 19px;
+  left: 50%;
+  transform: translateX(-50%);
+`;
+
+const StyledBackButton = styled.span`
+  color: #3C3A3A;
+  font-size: 15px;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 500;
+  word-wrap: break-word;
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  cursor: pointer;
+  z-index: 10;
+`;
+
+const StyledResultCard = styled.div`
+  width: 90%;
+  max-width: 344px;
+  height: 721px;
+  margin-top: 74px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.83);
+  border-radius: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const StyledScoreContainer = styled.div`
+  display: flex;
+  align-items: baseline;
+  margin-top: 26px;
+  gap: 5px;
+`;
+
+const StyledScoreNumber = styled.span`
+  color: black;
+  font-size: 77px;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 500;
+  word-wrap: break-word;
+`;
+
+const StyledScoreUnit = styled.span`
+  color: black;
+  font-size: 20px;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 500;
+  word-wrap: break-word;
+`;
+
+const StyledTitle = styled.span`
+  color: transparent;
   font-size: 24px;
-  color: #333;
-  margin-bottom: 30px;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 700;
+  word-wrap: break-word;
+  margin-top: 20px;
+  -webkit-text-stroke: 1px black;
+  text-stroke: 1px black;
+`;
+
+const StyledSubtitle = styled.p`
+  color: black;
+  font-size: 13px;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 300;
   text-align: center;
+  word-wrap: break-word;
+  margin-top: 20px;
 `;
 
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-bottom: 30px;
+const StyledOnboardingImage = styled.img`
+  width: 171px;
+  height: 32px;
+  margin-top: 20px;
 `;
 
-const StatCard = styled.div`
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
+const StyledStarImage = styled.img`
+  width: 45px;
+  height: 47px;
+  position: absolute;
+  top: 140px;
+  left: 25%;
+  transform: translateX(-50%);
 `;
 
-const StatValue = styled.div`
-  font-size: 32px;
-  font-weight: bold;
-  color: #3498db;
+const StyledUnderlineImage = styled.img`
+  width: 200px;
+  height: 40px;
+  position: absolute;
+  top: 160px;
+  left: 50%;
+  transform: translateX(-50%);
+`;
+
+const StyledProgressBarContainer = styled.div`
+  width: 90%;
+  max-width: 281px;
+  height: 30px;
+  margin-top: 30px;
+  position: relative;
+  background: #F3F3F3;
+  border-radius: 20px;
+  overflow: hidden;
+`;
+
+const StyledProgressBar = styled.div<{ $progress: number }>`
+  width: ${props => props.$progress}%;
+  height: 100%;
+  background: #B4D000;
+  border-radius: 20px;
+  transition: width 0.5s ease-in-out;
+`;
+
+const StyledLoadingImage = styled.img`
+  width: 45px;
+  height: 45px;
+  position: absolute;
+  top: 310px;
+  right: 20px;
+`;
+
+const StyledWrongAnswerBox = styled.div`
+  width: 90%;
+  max-width: 294px;
+  height: 176px;
+  margin-top: 30px;
+  background: #F7FEBF;
+  border-radius: 15px;
+  padding: 15px;
+  overflow-y: auto;
+`;
+
+const StyledWrongAnswerTitle = styled.span`
+  color: black;
+  font-size: 16px;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 700;
+  word-wrap: break-word;
+  display: block;
   margin-bottom: 10px;
 `;
 
-const StatLabel = styled.div`
-  font-size: 14px;
-  color: #666;
+const StyledWrongAnswer = styled.p`
+  margin: 5px 0;
+  font-size: 13px;
+  font-family: 'Gmarket Sans TTF';
 `;
 
-const ChartContainer = styled.div`
-  margin-top: 30px;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
+const StyledCorrectText = styled.span`
+  color: black;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 700;
+  font-size: 13px;
 `;
 
-const NavigationButtons = styled.div`
+const StyledWrongText = styled.span`
+  color: #FF0000;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 500;
+  font-size: 13px;
+`;
+
+const StyledNormalText = styled.span`
+  color: black;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 300;
+  font-size: 13px;
+`;
+
+const StyledButtonContainer = styled.div`
+  width: 90%;
+  max-width: 274px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 30px;
+  margin-bottom: 60px;
+`;
+
+const StyledSaveButton = styled.div`
+  width: 100%;
+  height: 54px;
+  background: #B4D000;
+  border-radius: 31px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 16px;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 700;
+  cursor: pointer;
+`;
+
+const StyledRetryButton = styled.div`
+  width: 100%;
+  height: 54px;
+  background: #9FB700;
+  border-radius: 31px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 16px;
+  font-family: 'Gmarket Sans TTF';
+  font-weight: 700;
+  cursor: pointer;
 `;
 
 interface LocationState {
@@ -74,46 +243,55 @@ const Statistics: React.FC = () => {
   const location = useLocation();
   const { totalQuestions, correctAnswers } = location.state as LocationState || { totalQuestions: 0, correctAnswers: 0 };
 
-  const accuracy = Math.round((correctAnswers / totalQuestions) * 100) || 0;
-  const averageTime = '2.5분'; // TODO: 실제 평균 시간 계산
+  const score = Math.round((correctAnswers / totalQuestions) * 100) || 0;
+
+  const handleBackClick = () => {
+    navigate('/dashboard');
+  };
+
+  const handleRetryClick = () => {
+    navigate('/quiz');
+  };
+
+  const handleSaveAsImage = () => {
+    // 이미지 저장 로직 구현
+    alert('이미지 저장 기능은 곧 구현될 예정입니다.');
+  };
 
   return (
-    <StatisticsContainer>
-      <StatisticsCard>
-        <Title>학습 통계</Title>
-        
-        <StatsGrid>
-          <StatCard>
-            <StatValue>{totalQuestions}</StatValue>
-            <StatLabel>총 퀴즈 수</StatLabel>
-          </StatCard>
-          <StatCard>
-            <StatValue>{correctAnswers}</StatValue>
-            <StatLabel>정답 수</StatLabel>
-          </StatCard>
-          <StatCard>
-            <StatValue>{averageTime}</StatValue>
-            <StatLabel>평균 응답 시간</StatLabel>
-          </StatCard>
-          <StatCard>
-            <StatValue>{accuracy}%</StatValue>
-            <StatLabel>정확도</StatLabel>
-          </StatCard>
-        </StatsGrid>
-
-        <ChartContainer>
-          {/* TODO: 차트 컴포넌트 추가 */}
-          <p style={{ textAlign: 'center', color: '#666' }}>
-            차트가 곧 추가될 예정입니다.
-          </p>
-        </ChartContainer>
-
-        <NavigationButtons>
-          <Button onClick={() => navigate('/dashboard')}>돌아가기</Button>
-          <Button onClick={() => navigate('/quiz')} variant="outline">다시 풀기</Button>
-        </NavigationButtons>
-      </StatisticsCard>
-    </StatisticsContainer>
+    <StyledContainer>
+      <StyledLogo src="/onboarding.png" alt="Logo" />
+      <StyledBackButton onClick={handleBackClick}>&lt;&lt; 처음으로</StyledBackButton>
+      <StyledResultCard>
+        <StyledTitle>나랏말싸미</StyledTitle>
+        <StyledScoreContainer>
+          <StyledScoreNumber>{score}</StyledScoreNumber>
+          <StyledScoreUnit>점</StyledScoreUnit>
+        </StyledScoreContainer>
+        <StyledStarImage src="/star.png" alt="Star" />
+        <StyledUnderlineImage src="/underline.png" alt="Underline" />
+        <StyledSubtitle>
+          차곡차곡 쌓아나가는 <br/>우리글 실력
+        </StyledSubtitle>
+        <StyledProgressBarContainer>
+          <StyledProgressBar $progress={score} />
+          <StyledLoadingImage src="/loading.png" alt="Loading" />
+        </StyledProgressBarContainer>
+        <StyledWrongAnswerBox>
+          <StyledWrongAnswerTitle>오답 문장 모아보기</StyledWrongAnswerTitle>
+          <StyledWrongAnswer>
+            <StyledNormalText>일을 </StyledNormalText>
+            <StyledWrongText>하던지 말던지 </StyledWrongText>
+            <StyledNormalText>마음을 정해야지. </StyledNormalText>
+            <StyledCorrectText>하든지 말든지</StyledCorrectText>
+          </StyledWrongAnswer>
+        </StyledWrongAnswerBox>
+        <StyledButtonContainer>
+          <StyledSaveButton onClick={handleSaveAsImage}>이미지로 저장하기</StyledSaveButton>
+          <StyledRetryButton onClick={handleRetryClick}>새로운 문제로 도전하기</StyledRetryButton>
+        </StyledButtonContainer>
+      </StyledResultCard>
+    </StyledContainer>
   );
 };
 
