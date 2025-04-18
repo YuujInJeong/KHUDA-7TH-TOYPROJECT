@@ -23,14 +23,17 @@ GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
 async def root():
     return {"success": "true"}
 
-class Google(BaseModel):
-    access_token: str
+class GoogleLogin(BaseModel):
+    credential: str
+    email: str
+    name: str
+    picture: str
 
 @router.post('/google')
-async def google(item: Google, db: Session = Depends(get_db)):
+async def google_login(item: GoogleLogin, db: Session = Depends(get_db)):
     try:
         # 받은 토큰 검증
-        id_info = id_token.verify_oauth2_token(item.access_token, requests.Request(), GOOGLE_CLIENT_ID)
+        id_info = id_token.verify_oauth2_token(item.credential, requests.Request(), GOOGLE_CLIENT_ID)
 
         # 이메일과 이름 추출
         email = id_info.get("email")
@@ -39,27 +42,34 @@ async def google(item: Google, db: Session = Depends(get_db)):
         if not email or not name:
             raise HTTPException(status_code=400, detail="Invalid token payload")
 
-        data = db.query(models.UserDB).filter(models.UserDB.email == email).first()
-        if data is None:
-            user = models.UserDB(google_id=str(uuid4()), email=email, display_name=name)
+        # 사용자 조회 또는 생성
+        user = db.query(models.UserDB).filter(models.UserDB.email == email).first()
+        if user is None:
+            user = models.UserDB(
+                google_id=str(uuid4()),
+                email=email,
+                display_name=name
+            )
             db.add(user)
             db.commit()
             db.refresh(user)
-
         else:
-            data.last_login = datetime.datetime.now()
+            user.last_login = datetime.datetime.now()
             db.commit()
 
-            ## 세션 생성
-            session = models.SessionDB(session_id=str(uuid4()), google_id=data.google_id)
-            db.add(session)
-            db.commit()
+        # 세션 생성
+        session = models.SessionDB(
+            session_id=str(uuid4()),
+            google_id=user.google_id
+        )
+        db.add(session)
+        db.commit()
 
-            return JSONResponse({
-                "session_token": session.session_id,
-                "display_name": data.display_name,
-                "study_level" : data.study_level
-            })
+        return JSONResponse({
+            "token": session.session_id,
+            "display_name": user.display_name,
+            "study_level": user.study_level
+        })
     
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -68,32 +78,32 @@ class Verify(BaseModel):
     session_token: str
 
 @router.post('/verify')
-async def create(item: Verify, db: Session = Depends(get_db)):
-    data = db.query(models.SessionDB).filter(models.SessionDB.session_id == item.session_token).first()
-    if data is None:
+async def verify_session(item: Verify, db: Session = Depends(get_db)):
+    session = db.query(models.SessionDB).filter(models.SessionDB.session_id == item.session_token).first()
+    if session is None:
         raise HTTPException(status_code=400, detail="Invalid session token")
-    else:
-        return JSONResponse({
-            "is_valid": True,
-            "display_name": data.session_owner.display_name,
-            "study_level": data.session_owner.study_level
-        })
+    
+    return JSONResponse({
+        "is_valid": True,
+        "display_name": session.session_owner.display_name,
+        "study_level": session.session_owner.study_level
+    })
 
 @router.post('/logout')
 async def logout(item: Verify, db: Session = Depends(get_db)):
-    data = db.query(models.SessionDB).filter(models.SessionDB.session_id == item.session_token).first()
-    if data is None:
+    session = db.query(models.SessionDB).filter(models.SessionDB.session_id == item.session_token).first()
+    if session is None:
         raise HTTPException(status_code=400, detail="Invalid session token")
-    else:
-        db.delete(data)
-        db.commit()
-        return JSONResponse({
-            "success": True
-        })
+    
+    db.delete(session)
+    db.commit()
+    return JSONResponse({
+        "success": True
+    })
 
 @router.post('/test_session_create')
-async def test_session_create(item: Google, db: Session = Depends(get_db)):
-    if os.environ.get('TEST_SESSION_TOKEN') != item.access_token:
+async def test_session_create(item: GoogleLogin, db: Session = Depends(get_db)):
+    if os.environ.get('TEST_SESSION_TOKEN') != item.credential:
         raise HTTPException(status_code=400, detail="Invalid environment")
     data = db.query(models.UserDB).filter(models.UserDB.email == "test@test.com").first()
     if data is not None:

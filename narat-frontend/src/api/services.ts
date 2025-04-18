@@ -8,7 +8,8 @@ import {
   Recommendation, 
   StudyStats, 
   RecentWrongAnswer, 
-  StudyHistory 
+  StudyHistory,
+  Session 
 } from '../types/auth';
 
 // 인증 관련 API

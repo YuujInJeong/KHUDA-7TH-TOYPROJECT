@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { theme } from './styles/theme';
 import { GlobalStyle } from './styles/globalStyles';
 import AppRoutes from './routes';
@@ -56,10 +57,12 @@ const App: React.FC = () => {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <GlobalStyle />
-      <AppRoutes />
-    </ThemeProvider>
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID!}>
+      <ThemeProvider theme={theme}>
+        <GlobalStyle />
+        <AppRoutes />
+      </ThemeProvider>
+    </GoogleOAuthProvider>
   );
 };
 

@@ -4,8 +4,7 @@ import styled, { keyframes } from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../api/services';
-import { googleLogin } from '../api/auth';
-import { getAuthToken, setAuthToken } from '../api/axios';
+import { setAuthToken } from '../api/axios';
 
 const fadeOut = keyframes`
   0% {
@@ -85,6 +84,22 @@ const ErrorMessage = styled.div`
   text-align: center;
 `;
 
+const LoadingSpinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #143E00;
+  animation: spin 1s ease-in-out infinite;
+  margin-top: 20px;
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -92,6 +107,19 @@ const Login: React.FC = () => {
   const [userName, setUserName] = useState<string>('');
   const [isFading, setIsFading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 페이지 로드 시 2초 후 대시보드로 이동
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsFading(true);
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, [navigate]);
 
   // URL 쿼리 파라미터에서 코드 가져오기
   useEffect(() => {
@@ -101,6 +129,7 @@ const Login: React.FC = () => {
     
     if (error) {
       setError('로그인 중 오류가 발생했습니다');
+      setIsLoading(false);
       return;
     }
     
@@ -117,35 +146,28 @@ const Login: React.FC = () => {
             if (userData) {
               login(userData);
               setUserName(userData.display_name || '사용자');
-              
-              // 페이드 아웃 애니메이션 실행 후 대시보드로 이동
-              setIsFading(true);
-              setTimeout(() => {
-                navigate('/dashboard');
-              }, 1000);
             }
           }
         } catch (err) {
           console.error('Failed to handle Google callback:', err);
           setError('로그인 처리 중 오류가 발생했습니다');
+          setIsLoading(false);
         }
       };
       
       handleGoogleCallback();
+    } else {
+      // 코드가 없는 경우 로딩 상태만 표시
+      setIsLoading(true);
     }
-  }, [location.search, login, navigate]);
+  }, [location.search, login]);
 
-  // 이미 로그인된 경우 자동으로 대시보드로 이동
+  // 이미 로그인된 경우 사용자 이름 설정
   useEffect(() => {
     if (isAuthenticated && user) {
       setUserName(user.display_name);
-      setIsFading(true);
-      
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user]);
 
   return (
     <LoginContainer isFading={isFading}>
@@ -156,6 +178,7 @@ const Login: React.FC = () => {
         <Welcome>환영합니다</Welcome>
       </WelcomeText>
       
+      {isLoading && <LoadingSpinner />}
       {error && <ErrorMessage>{error}</ErrorMessage>}
     </LoginContainer>
   );
