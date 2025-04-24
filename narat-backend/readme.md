@@ -12,6 +12,8 @@ NARAT은 개인화된 학습 경험을 제공하는 교육 플랫폼입니다. �
   - [SasRec 모델](#sasrec-모델)
   - [이전 SSREF 모델](#이전-ssref-모델)
 - [설치 및 실행](#설치-및-실행)
+  - [로컬 환경](#로컬-환경)
+  - [Docker 환경](#docker-환경)
 
 ## 기술 스택
 
@@ -388,38 +390,26 @@ NARAT의 현재 추천 시스템은 SasRec(Self-Attentive Sequential Recommendat
 
 ## 설치 및 실행
 
-### 필수 요구사항
+### 로컬 환경
 
-- Python 3.8 이상
-- PostgreSQL 12 이상
-- CUDA 지원 GPU (선택사항, CPU에서도 실행 가능)
-
-### 설치 방법
-
-1. 저장소 클론:
-   ```bash
-   git clone https://github.com/khuda-deepdive-session/KHUDA-7TH-TOYPROJECT.git
-   cd narat-backend
-   ```
-
-2. 가상 환경 생성 및 활성화:
+1. Python 가상환경 설정:
    ```bash
    python -m venv venv
    source venv/bin/activate  # Windows: venv\Scripts\activate
    ```
 
-3. 의존성 설치:
+2. 의존성 설치:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. 환경 변수 설정:
+3. 환경 변수 설정:
    ```bash
    cp .env.example .env
    # .env 파일을 편집하여 필요한 설정을 입력
    ```
 
-5. PostgreSQL 설정:
+4. PostgreSQL 설정:
    ```bash
    # PostgreSQL 서비스 시작
    brew services start postgresql@14
@@ -429,16 +419,97 @@ NARAT의 현재 추천 시스템은 SasRec(Self-Attentive Sequential Recommendat
    createdb -O postgres narat_db
    ```
 
-6. 데이터베이스 초기화:
+5. 데이터베이스 초기화:
    ```bash
    python dbmaker.py
    python data_migration.py
    ```
 
-7. 서버 실행:
+6. 서버 실행:
    ```bash
    uvicorn main:app --reload
    ```
+
+### Docker 환경
+
+Docker를 사용하면 시스템 의존성 문제 없이 쉽게 실행할 수 있습니다.
+
+1. Docker 및 Docker Compose 설치:
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/) 설치
+   - Docker Desktop 실행
+
+2. 환경 변수 설정:
+   ```bash
+   cp .env.example .env
+   # .env 파일을 편집하여 필요한 설정을 입력
+   ```
+
+3. Docker Compose로 실행:
+   ```bash
+   docker-compose up --build
+   ```
+
+4. 서버 접속:
+   - API 서버: http://localhost:8000
+   - API 문서: http://localhost:8000/docs
+
+#### Docker Compose 구성
+
+```yaml
+version: '3.8'
+
+services:
+  api:  # 백엔드 API 서버
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_ID=${DB_ID}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME}
+      - SECRET_KEY=${SECRET_KEY}
+      - API_HOST=${API_HOST}
+      - API_PORT=${API_PORT}
+      - API_DOMAIN=${API_DOMAIN}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    networks:
+      - narat-network
+
+  db:  # PostgreSQL 데이터베이스
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${DB_ID}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - narat-network
+
+volumes:
+  postgres_data:  # 데이터베이스 데이터 영구 저장
+
+networks:
+  narat-network:  # 컨테이너 간 통신 네트워크
+    driver: bridge
+```
+
+#### 주요 특징
+
+- **격리된 환경**: 시스템 의존성 문제 없이 실행 가능
+- **데이터 영구 저장**: `postgres_data` 볼륨을 통해 데이터베이스 데이터 보존
+- **실시간 코드 반영**: 로컬 코드가 컨테이너와 동기화되어 개발 편의성 제공
+- **자동화된 설정**: 환경 변수를 통한 간편한 설정 관리
 
 ## 데이터베이스 마이그레이션
 
